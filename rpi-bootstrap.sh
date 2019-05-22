@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # Fail on error
@@ -95,7 +94,7 @@ if $EncryptRoot; then
 fi
 
 # We exclude init because it would force systemd to install.
-debootstrap --arch=armhf --variant=minbase --include=apt-utils,aptitude,ca-certificates,gnupg,less,locales,man-db,nano,netbase,ntp,ifupdown,inetutils-ping,iproute2,irqbalance,openssh-server,psmisc,sudo,sysvinit-core,wget,whiptail${ExtraPackages} --exclude=init $Version root http://httpredir.debian.org/debian/
+debootstrap --arch=armhf --variant=minbase --include=apt-utils,aptitude,btrfs-progs,ca-certificates,gnupg,less,locales,man-db,nano,netbase,ntp,ifupdown,inetutils-ping,iproute2,irqbalance,openssh-server,psmisc,sudo,sysvinit-core,wget,whiptail${ExtraPackages} --exclude=init $Version root http://httpredir.debian.org/debian/
 
 if $EncryptRoot; then
 	log_step "Creating minimal cmdline.txt"
@@ -104,7 +103,7 @@ if $EncryptRoot; then
 
 	log_step "Populating fstab"
 	cat <<EOF | cut -c3- >root/etc/fstab
-		/dev/mapper/root_crypt	/	btrfs	noatime,nodiratime,errors=remount-ro	0	1
+		/dev/mapper/root_crypt	/	btrfs	noatime,nodiratime	0	1
 		UUID=$BootUUID	/boot	vfat	umask=0077	0	1
 EOF
 
@@ -119,7 +118,7 @@ else
 
 	log_step "Populating fstab"
 	cat <<EOF | cut -c3- >root/etc/fstab
-		UUID=$RootUUID	/	btrfs	noatime,nodiratime,errors=remount-ro	0	1
+		UUID=$RootUUID	/	btrfs	noatime,nodiratime	0	1
 		UUID=$BootUUID	/boot	vfat	umask=0077	0	1
 EOF
 fi
@@ -238,6 +237,7 @@ if [ ! -z "$UserSSHKeys" ]; then
 	chmod 700 "$UserHome/.ssh/"
 	echo "$UserSSHKeys">"$UserHome/.ssh/authorized_keys"
 	chmod 600 "$UserHome/.ssh/authorized_keys"
+	chown -R "$UserName:$UserName" "$UserHome/.ssh/"
 fi
 
 log_step "Creating minimal config.txt"
